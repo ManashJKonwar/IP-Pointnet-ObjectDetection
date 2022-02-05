@@ -1,0 +1,7 @@
+# Lyft Packages
+# ------------------------------------------------------------------------------
+lyft-dataset-sdk==0.0.8  # https://pypi.org/project/lyft-dataset-sdk/0.0.8/  # Lyft Module for Dataset Operations
+
+# Kaggle Packages
+# ------------------------------------------------------------------------------
+kaggle==1.5.12  # https://pypi.org/project/kaggle/1.5.12/  # Kaggle API for dataset operations
