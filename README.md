@@ -22,6 +22,11 @@
 - The aim of this repository is to implement Frustum Pointnets on readily available 3d KITTI as well as Lyft datasets.
 - Understand Pointnet Architecture and develop POC around research papers from main authors of Frustum Pointnet.
 - Implement Frustum Pointnet for developing a 3d object detector.
+
+This repository is code release for CVPR 2018 paper (arXiv report [here](https://arxiv.org/abs/1711.08488)). In this work, study of 3D object detection from RGB-D data was performed. The authors propose a novel detection pipeline that combines both mature 2D object detectors and the state-of-the-art 3D deep learning techniques. In this pipeline, first thing is to build object proposals with a 2D detector running on RGB images, where each 2D bounding box defines a 3D frustum region. Then based on 3D point clouds in those frustum regions, 3D instance segmentation is achieved and amodal 3D bounding box estimation, using PointNet/PointNet++ networks (see references at bottom).
+
+By leveraging 2D object detectors, we greatly reduce 3D search space for object localization. The high resolution and rich texture information in images also enable high recalls for smaller objects like pedestrians or cyclists that are harder to localize by point clouds only. By adopting PointNet architectures, we are able to directly work on 3D point clouds, without the necessity to voxelize them to grids or to project them to image planes. Since the paper directly work on point clouds, they are able to fully respect and exploit the 3D geometry -- one example is the series of coordinate normalizations that authors apply, which help canocalizes the learning problem. They have further evaluated this approach on KITTI and SUNRGBD benchmarks, and this system significantly outperforms previous state of the art and is still in leading positions on current <a href="http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d">KITTI leaderboard</a>.
+
 <!-- You don't have to answer all the questions - just the ones relevant to your project. -->
 ![Frustum Pointnet 3D Object Detection Pipeline](./repo_assets/FrustumPointnet_Object_Detection_Pipeline.jpg)
 
