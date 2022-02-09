@@ -1,5 +1,5 @@
-# Frustum Pointnet Implementation for 3D Object Detection Using TF2
-> The entire repository further helps us to implement point clouds and create a custom object detecter for specially autonomous vehicle best dataset.
+# Frustum Pointnet Implementation for 3D Object Detection Using TF2/Keras
+> The entire repository further helps us to implement point clouds and create a custom object detecter which can be later scaled to detect objects specially for autonomous vehicle based applications.
 
 > Live demo [_here_](https://www.example.com). <!-- If you have the project hosted somewhere, include the link here. -->
 
@@ -54,8 +54,45 @@ List the ready features here:
 - pip install -r requirements.txt (Install all required python modules)
 
 ## Dataset Utilized:
-- [KITTI Dataset](http://3dvision.princeton.edu/projects/2014/3DShapeNets/)
-XXXXX
+- [KITTI 3d Object Detector](http://www.cvlibs.net/datasets/kitti/eval_object.php?obj_benchmark=3d)
+Credit goes to [KITTI dataset](http://www.cvlibs.net/datasets/kitti/)
+The 3D object detection benchmark consists of 7481 training images and 7518 test images as well as the corresponding point  
+clouds, comprising a total of 80.256 labeled objects  
+
+One of the best way to understand this data is to understand the sensor layout on the dataset accumulating vehicle which was  
+used by KITTI
+![Sensor Layout](./repo_assets/KITTI_sensor_setup.jpg)
+
+Both Training and Testing Dataset are broken into 4 parts-  
+1. camera_2_image(.png) - This is a png image file captured by the camera
+2. camera_2_label(.txt) - This is a text file containing label and coordinate configuration for objects within the camera  
+image having same naming convention under camera_2_image. Each row of this file is an object and it contains 15 values   
+including the object tag (Car, Pedestrain, Cyclist, etc). The 2D bounding boxes are in terms of pixels in the camera image.   
+The 3D bounding boxes are in 2 co-ordinates. The size (height, weight, and length) are in the object co-ordinate, and the  
+center on the bounding box is in the camera co-ordinate.
+
+Please see below for details on these 15 parameters
+1   type        Describes the type of object: 'Car', 'Van', 'Truck',
+                'Pedestrian', 'Person_sitting', 'Cyclist', 'Tram',
+                'Misc' or 'DontCare'
+1   truncated   Float from 0 (non-truncated) to 1 (truncated), where
+                truncated refers to the object leaving image boundaries
+1   occluded    Integer (0,1,2,3) indicating occlusion state:
+                0 = fully visible, 1 = partly occluded
+                2 = largely occluded, 3 = unknown
+1   alpha       Observation angle of object, ranging [-pi..pi]
+4   bbox        2D bounding box of object in the image (0-based index):
+                contains left, top, right, bottom pixel coordinates
+3   dimensions  3D object dimensions: height, width, length (in meters)
+3   location    3D object location x,y,z in camera coordinates (in meters)
+1   rotation_y  Rotation ry around Y-axis in camera coordinates [-pi..pi]
+1   score       Only for results: Float, indicating confidence in
+                detection, needed for p/r curves, higher is better.
+![Dataset Labelling](./repo_assets/KITTI_data_explanation.jpg)
+
+3. calibration(.txt) - There are in total 7 parameters in this file.  
+P0, P1, P2, P3, R0_rect, Tr_velo_to_cam, Tr_imu_to_velo
+4. velodyne point cloud (.bin) 
 
 - [Lyft Dataset](http://3dvision.princeton.edu/projects/2014/3DShapeNets/)
 XXXXX
