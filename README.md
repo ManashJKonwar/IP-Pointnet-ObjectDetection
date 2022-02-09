@@ -59,19 +59,14 @@ Credit goes to [KITTI dataset](http://www.cvlibs.net/datasets/kitti/)
 The 3D object detection benchmark consists of 7481 training images and 7518 test images as well as the corresponding point  
 clouds, comprising a total of 80.256 labeled objects  
 
-One of the best way to understand this data is to understand the sensor layout on the dataset accumulating vehicle which was  
-used by KITTI
+One of the best way to understand this data is to understand the sensor layout on the dataset accumulating vehicle which was used by KITTI
 ![Sensor Layout](./repo_assets/KITTI_sensor_setup.jpg)
 
 Both Training and Testing Dataset are broken into 4 parts-  
 1. camera_2_image(.png) - This is a png image file captured by the camera
-2. camera_2_label(.txt) - This is a text file containing label and coordinate configuration for objects within the camera  
-image having same naming convention under camera_2_image. Each row of this file is an object and it contains 15 values   
-including the object tag (Car, Pedestrain, Cyclist, etc). The 2D bounding boxes are in terms of pixels in the camera image.   
-The 3D bounding boxes are in 2 co-ordinates. The size (height, weight, and length) are in the object co-ordinate, and the  
-center on the bounding box is in the camera co-ordinate.
+2. camera_2_label(.txt) - This is a text file containing label and coordinate configuration for objects within the camera image having same naming convention under camera_2_image. Each row of this file is an object and it contains 15 values including the object tag (Car, Pedestrain, Cyclist, etc). The 2D bounding boxes are in terms of pixels in the camera image. The 3D bounding boxes are in 2 co-ordinates. The size (height, weight, and length) are in the object co-ordinate, and the center on the bounding box is in the camera co-ordinate.
 
-Please see below for details on these 15 parameters
+Please see below for details on these 15 parameters  
 1   type        Describes the type of object: 'Car', 'Van', 'Truck',
                 'Pedestrian', 'Person_sitting', 'Cyclist', 'Tram',
                 'Misc' or 'DontCare'
