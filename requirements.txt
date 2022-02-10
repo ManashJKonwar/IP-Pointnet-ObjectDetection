@@ -6,7 +6,14 @@ lyft-dataset-sdk==0.0.8  # https://pypi.org/project/lyft-dataset-sdk/0.0.8/  # L
 # ------------------------------------------------------------------------------
 kaggle==1.5.12  # https://pypi.org/project/kaggle/1.5.12/  # Kaggle API for dataset operations
 
-# Modelling Modules
+# Modelling Packages
 # ------------------------------------------------------------------------------
 tqdm==4.62.3  # https://pypi.org/project/tqdm/4.62.3/  # Fast, Extensible Progress Meter
 tensorflow==2.8.0  # https://pypi.org/project/tensorflow/2.8.0/  # Tensorflow engine
+
+# Data Processing and Visualization Packages
+# ------------------------------------------------------------------------------
+vtk==9.1.0  # https://pypi.org/project/vtk/9.1.0/  # VTK is an open-source toolkit for 3D computer graphics, image processing, and visualization
+opencv-python==4.5.5.62  # https://pypi.org/project/opencv-python/4.5.5.62/  # Pre-built CPU-only OpenCV packages for Python
+mayavi==4.7.4  # https://pypi.org/project/mayavi/4.7.4/  # 3D scientific data visualization library and application
+PyQt5==5.15.6  # https://pypi.org/project/PyQt5/5.15.6/  # Python bindings for the Qt cross platform application toolkit
