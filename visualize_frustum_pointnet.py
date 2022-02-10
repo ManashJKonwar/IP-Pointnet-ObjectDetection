@@ -35,7 +35,7 @@ def visualize_objects(dataset_idx=0):
         None
     """
     import mayavi.mlab as mlab
-    from visualization.KITTI.viz_util import draw_lidar, draw_lidar_simple, draw_gt_boxes3d
+    from utility.KITTI.viz_util import draw_lidar, draw_lidar_simple, draw_gt_boxes3d
     dataset = kitti_object(r'datasets\KITTI')
     data_idx = dataset_idx
 
