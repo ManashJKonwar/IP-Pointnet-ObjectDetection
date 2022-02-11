@@ -108,7 +108,7 @@ To do:
 
 ## References
 [1] PointNet: Deep Learning on Point Sets for 3D Classification and Segmentation; Charles R. Qi, Hao Su, Kaichun Mo, Leonidas J. Guibas;
-CVPR 2017; https://arxiv.org/abs/1612.00593.
+CVPR 2017; https://arxiv.org/abs/1612.00593.  
 [2] Frustum PointNets for 3D Object Detection from RGB-D Data; Charles R. Qi, Wei Liu, Chenxia Wu, Hao Su, Leonidas J. Guibas; https://arxiv.org/abs/1711.08488
 
 ## Acknowledgements
