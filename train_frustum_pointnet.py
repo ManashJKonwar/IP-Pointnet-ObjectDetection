@@ -23,7 +23,6 @@ if __name__ == '__main__':
             3. camera calibration matrices
             4. training labels
         '''
-
         kitti_dataset_directory =  download_dataset(
                                         dataset_url_dict={
                                             'left color images':'https://s3.eu-central-1.amazonaws.com/avg-kitti/data_object_image_2.zip',
@@ -36,6 +35,23 @@ if __name__ == '__main__':
                                     )
 
         '''
-        Train Data Preparation
+        Data Preparation for KITTI Dataset
+        During this process, Extraction of frustum point clouds along with ground truth labels 
+        from the original KITTI data is performed which is based on both ground truth 2D bounding boxes 
+        and boxes from a 2D object detector. We will do the extraction for the train dataset under 
+        (datasets/KITTI/image_sets/train.txt) and validation sets under (datasets/KITTI/image_sets/val.txt)
+        using ground truth 2D boxes, and also extract data from validation set with predicted 2D boxes 
+        under (datasets/KITTI/rgb_detections/rgb_detection_val.txt).
+        This is initially done for only 3 object types namely
+        1. Car
+        2. Pedestrain and 
+        3. Cyclist
+        However, the behaviour can be extended for remaining objects as well
         '''
-        
+        generate_data(
+            dataset_directory=r'datasets\KITTI',
+            generate_train_data=True,
+            generate_val_data=True,
+            generate_rgb_val_data=True,
+            object_list=['Car', 'Pedestrian', 'Cyclist']
+        )
