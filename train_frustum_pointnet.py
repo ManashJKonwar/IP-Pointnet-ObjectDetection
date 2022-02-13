@@ -9,6 +9,7 @@ __status__ = "Development"
 
 import os
 from utility.utility_datatransformation import download_dataset
+from preprocessing.KITTI.generate_data import generate_data
 
 if __name__ == '__main__':
     TRAIN_FRUSTUM_NET_KITTI = True
