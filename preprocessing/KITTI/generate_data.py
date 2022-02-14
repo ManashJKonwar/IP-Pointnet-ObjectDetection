@@ -322,26 +322,29 @@ def generate_data(**kwargs):
     output_prefix = 'frustum_'+ ''.join([obj[:3].lower() for obj in object_list]) + '_'
 
     if generate_train_data:
-        extract_frustum_data(os.path.join(dataset_directory, r'image_sets\train.txt'),
-                        'training',
-                        os.path.join(dataset_directory, output_prefix+'train.pickle'), 
-                        viz=False, 
-                        perturb_box2d=True, 
-                        augmentX=5,
-                        type_whitelist=object_list)
+        if not os.path.exists(os.path.join(dataset_directory, output_prefix+'train.pickle')):
+            extract_frustum_data(os.path.join(dataset_directory, r'image_sets\train.txt'),
+                            'training',
+                            os.path.join(dataset_directory, output_prefix+'train.pickle'), 
+                            viz=False, 
+                            perturb_box2d=True, 
+                            augmentX=5,
+                            type_whitelist=object_list)
 
     if generate_val_data:
-        extract_frustum_data(os.path.join(dataset_directory, r'image_sets\val.txt'),
-                        'training',
-                        os.path.join(dataset_directory, output_prefix+'val.pickle'),
-                        viz=False, 
-                        perturb_box2d=False, 
-                        augmentX=1,
-                        type_whitelist=object_list)
+        if not os.path.exists(os.path.join(dataset_directory, output_prefix+'val.pickle')):
+            extract_frustum_data(os.path.join(dataset_directory, r'image_sets\val.txt'),
+                            'training',
+                            os.path.join(dataset_directory, output_prefix+'val.pickle'),
+                            viz=False, 
+                            perturb_box2d=False, 
+                            augmentX=1,
+                            type_whitelist=object_list)
 
     if generate_rgb_val_data:
-        extract_frustum_data_rgb_detection(os.path.join(dataset_directory, r'rgb_detections\rgb_detection_val.txt'),
-                                        'training',
-                                        os.path.join(dataset_directory, output_prefix+'val_rgb_detection.pickle'),
-                                        viz=False,
-                                        type_whitelist=object_list) 
+        if not os.path.exists(os.path.join(dataset_directory, output_prefix+'val_rgb_detection.pickle')):
+            extract_frustum_data_rgb_detection(os.path.join(dataset_directory, r'rgb_detections\rgb_detection_val.txt'),
+                                            'training',
+                                            os.path.join(dataset_directory, output_prefix+'val_rgb_detection.pickle'),
+                                            viz=False,
+                                            type_whitelist=object_list) 
