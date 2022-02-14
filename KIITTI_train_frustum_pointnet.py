@@ -8,8 +8,9 @@ __email__ = "rickykonwar@gmail.com"
 __status__ = "Development"
 
 import os
-from utility.utility_datatransformation import download_dataset
 from preprocessing.KITTI.generate_data import generate_data
+from utility.utility_datatransformation import download_dataset
+from training.KITTI.train_tf import train_frustum_pointnet_tf
 
 if __name__ == '__main__':
     TRAIN_FRUSTUM_NET_KITTI = True
@@ -58,4 +59,19 @@ if __name__ == '__main__':
         )
 
         '''
+        Training Frustum Pointnets
         '''
+        train_frustum_pointnet_tf(
+            gpu=0,
+            model_name='frustum_pointnets_v1',
+            log_dir=r'logs\KITTI',
+            num_point=2048,
+            max_epoch=201,
+            batch_size=32,
+            learning_rate=0.001,
+            momentum=0.9,
+            optimizer='adam',
+            decay_step=200000,
+            decay_rate=0.7,
+            no_intensity=False
+        )

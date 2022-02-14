@@ -277,6 +277,57 @@ def get_3d_box(box_size, heading_angle, center):
     corners_3d = np.transpose(corners_3d)
     return corners_3d
 
+def compute_box3d_iou(center_pred,
+                      heading_logits, heading_residuals,
+                      size_logits, size_residuals,
+                      center_label,
+                      heading_class_label, heading_residual_label,
+                      size_class_label, size_residual_label):
+    ''' Compute 3D bounding box IoU from network output and labels.
+    All inputs are numpy arrays.
+    Inputs:
+        center_pred: (B,3)
+        heading_logits: (B,NUM_HEADING_BIN)
+        heading_residuals: (B,NUM_HEADING_BIN)
+        size_logits: (B,NUM_SIZE_CLUSTER)
+        size_residuals: (B,NUM_SIZE_CLUSTER,3)
+        center_label: (B,3)
+        heading_class_label: (B,)
+        heading_residual_label: (B,)
+        size_class_label: (B,)
+        size_residual_label: (B,3)
+    Output:
+        iou2ds: (B,) birdeye view oriented 2d box ious
+        iou3ds: (B,) 3d box ious
+    '''
+    batch_size = heading_logits.shape[0]
+    heading_class = np.argmax(heading_logits, 1) # B
+    heading_residual = np.array([heading_residuals[i,heading_class[i]] \
+        for i in range(batch_size)]) # B,
+    size_class = np.argmax(size_logits, 1) # B
+    size_residual = np.vstack([size_residuals[i,size_class[i],:] \
+        for i in range(batch_size)])
+
+    iou2d_list = [] 
+    iou3d_list = [] 
+    for i in range(batch_size):
+        heading_angle = class2angle(heading_class[i],
+            heading_residual[i], NUM_HEADING_BIN)
+        box_size = class2size(size_class[i], size_residual[i])
+        corners_3d = get_3d_box(box_size, heading_angle, center_pred[i])
+
+        heading_angle_label = class2angle(heading_class_label[i],
+            heading_residual_label[i], NUM_HEADING_BIN)
+        box_size_label = class2size(size_class_label[i], size_residual_label[i])
+        corners_3d_label = get_3d_box(box_size_label,
+            heading_angle_label, center_label[i])
+
+        iou_3d, iou_2d = box3d_iou(corners_3d, corners_3d_label) 
+        iou3d_list.append(iou_3d)
+        iou2d_list.append(iou_2d)
+    return np.array(iou2d_list, dtype=np.float32), \
+        np.array(iou3d_list, dtype=np.float32)
+
 def visualize_frustum_data():
     """
     This method helps us to visualize training data which was created from the 
