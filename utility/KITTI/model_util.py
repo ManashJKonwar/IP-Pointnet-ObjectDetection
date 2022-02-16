@@ -12,7 +12,7 @@ import numpy as np
 import tensorflow as tf
 import os
 import sys
-import utility.KITTI.tf_util
+import utility.KITTI.tf_util as tf_util
 
 # -----------------
 # Global Constants
@@ -69,7 +69,7 @@ def tf_gather_object_pc(point_cloud, mask, npoints=512):
             indices[i,:,0] = i
         return indices
 
-    indices = tf.py_func(mask_to_indices, [mask], tf.int32)  
+    indices = tf.py_function(mask_to_indices, [mask], tf.int32)  
     object_pc = tf.gather_nd(point_cloud, indices)
     return object_pc, indices
 
@@ -77,7 +77,7 @@ def tf_gather_object_pc(point_cloud, mask, npoints=512):
 def get_box3d_corners_helper(centers, headings, sizes):
     """ TF layer. Input: (N,3), (N,), (N,3), Output: (N,8,3) """
     #print '-----', centers
-    N = centers.get_shape()[0].value
+    N = centers.get_shape()[0]
     l = tf.slice(sizes, [0,0], [-1,1]) # (N,1)
     w = tf.slice(sizes, [0,1], [-1,1]) # (N,1)
     h = tf.slice(sizes, [0,2], [-1,1]) # (N,1)
@@ -110,7 +110,7 @@ def get_box3d_corners(center, heading_residuals, size_residuals):
     Outputs:
         box3d_corners: (B,NH,NS,8,3) tensor
     """
-    batch_size = center.get_shape()[0].value
+    batch_size = center.get_shape()[0]
     heading_bin_centers = tf.constant(np.arange(0,2*np.pi,2*np.pi/NUM_HEADING_BIN), dtype=tf.float32) # (NH,)
     headings = heading_residuals + tf.expand_dims(heading_bin_centers, 0) # (B,NH)
     
@@ -142,7 +142,7 @@ def parse_output_to_tensors(output, end_points):
     Output:
         end_points: dict (updated)
     '''
-    batch_size = output.get_shape()[0].value
+    batch_size = output.get_shape()[0]
     center = tf.slice(output, [0,0], [-1,3])
     end_points['center_boxnet'] = center
 
@@ -180,17 +180,16 @@ def placeholder_inputs(batch_size, num_point):
     Output:
         TF placeholders for inputs and ground truths
     '''
-    pointclouds_pl = tf.placeholder(tf.float32,
-        shape=(batch_size, num_point, 4))
-    one_hot_vec_pl = tf.placeholder(tf.float32, shape=(batch_size, 3))
+    pointclouds_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, num_point, 4))
+    one_hot_vec_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, 3))
 
     # labels_pl is for segmentation label
-    labels_pl = tf.placeholder(tf.int32, shape=(batch_size, num_point))
-    centers_pl = tf.placeholder(tf.float32, shape=(batch_size, 3))
-    heading_class_label_pl = tf.placeholder(tf.int32, shape=(batch_size,))
-    heading_residual_label_pl = tf.placeholder(tf.float32, shape=(batch_size,))
-    size_class_label_pl = tf.placeholder(tf.int32, shape=(batch_size,))
-    size_residual_label_pl = tf.placeholder(tf.float32, shape=(batch_size,3))
+    labels_pl = tf.compat.v1.placeholder(tf.int32, shape=(batch_size, num_point))
+    centers_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size, 3))
+    heading_class_label_pl = tf.compat.v1.placeholder(tf.int32, shape=(batch_size,))
+    heading_residual_label_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size,))
+    size_class_label_pl = tf.compat.v1.placeholder(tf.int32, shape=(batch_size,))
+    size_residual_label_pl = tf.compat.v1.placeholder(tf.float32, shape=(batch_size,3))
 
     return pointclouds_pl, one_hot_vec_pl, labels_pl, centers_pl, \
         heading_class_label_pl, heading_residual_label_pl, \
@@ -212,16 +211,15 @@ def point_cloud_masking(point_cloud, logits, end_points, xyz_only=True):
             M = NUM_OBJECT_POINT as a hyper-parameter
         mask_xyz_mean: TF tensor in shape (B,3)
     '''
-    batch_size = point_cloud.get_shape()[0].value
-    num_point = point_cloud.get_shape()[1].value
+    batch_size = point_cloud.get_shape()[0]
+    num_point = point_cloud.get_shape()[1]
     mask = tf.slice(logits,[0,0,0],[-1,-1,1]) < \
         tf.slice(logits,[0,0,1],[-1,-1,1])
-    mask = tf.to_float(mask) # BxNx1
-    mask_count = tf.tile(tf.reduce_sum(mask,axis=1,keep_dims=True),
+    mask = tf.compat.v1.to_float(mask) # BxNx1
+    mask_count = tf.tile(tf.math.reduce_sum(mask,axis=1,keepdims=True),
         [1,1,3]) # Bx1x3
     point_cloud_xyz = tf.slice(point_cloud, [0,0,0], [-1,-1,3]) # BxNx3
-    mask_xyz_mean = tf.reduce_sum(tf.tile(mask, [1,1,3])*point_cloud_xyz,
-        axis=1, keep_dims=True) # Bx1x3
+    mask_xyz_mean = tf.math.reduce_sum(tf.tile(mask, [1,1,3])*point_cloud_xyz, axis=1, keepdims=True) # Bx1x3
     mask = tf.squeeze(mask, axis=[2]) # BxN
     end_points['mask'] = mask
     mask_xyz_mean = mask_xyz_mean/tf.maximum(mask_count,1) # Bx1x3
@@ -236,7 +234,7 @@ def point_cloud_masking(point_cloud, logits, end_points, xyz_only=True):
         point_cloud_features = tf.slice(point_cloud, [0,0,3], [-1,-1,-1])
         point_cloud_stage1 = tf.concat(\
             [point_cloud_xyz_stage1, point_cloud_features], axis=-1)
-    num_channels = point_cloud_stage1.get_shape()[2].value
+    num_channels = point_cloud_stage1.get_shape()[2]
 
     object_point_cloud, _ = tf_gather_object_pc(point_cloud_stage1,
         mask, NUM_OBJECT_POINT)
@@ -256,7 +254,7 @@ def get_center_regression_net(object_point_cloud, one_hot_vec,
     Output:
         predicted_center: TF tensor in shape (B,3)
     ''' 
-    num_point = object_point_cloud.get_shape()[1].value
+    num_point = object_point_cloud.get_shape()[1]   
     net = tf.expand_dims(object_point_cloud, 2)
     net = tf_util.conv2d(net, 128, [1,1],
                          padding='VALID', stride=[1,1],
@@ -330,7 +328,7 @@ def get_loss(mask_label, center_label, \
     heading_residual_normalized_label = \
         heading_residual_label / (np.pi/NUM_HEADING_BIN)
     heading_residual_normalized_loss = huber_loss(tf.reduce_sum( \
-        end_points['heading_residuals_normalized']*tf.to_float(hcls_onehot), axis=1) - \
+        end_points['heading_residuals_normalized']*tf.compat.v1.to_float(hcls_onehot), axis=1) - \
         heading_residual_normalized_label, delta=1.0)
     tf.summary.scalar('heading residual normalized loss',
         heading_residual_normalized_loss)
@@ -345,7 +343,7 @@ def get_loss(mask_label, center_label, \
         depth=NUM_SIZE_CLUSTER,
         on_value=1, off_value=0, axis=-1) # BxNUM_SIZE_CLUSTER
     scls_onehot_tiled = tf.tile(tf.expand_dims( \
-        tf.to_float(scls_onehot), -1), [1,1,3]) # BxNUM_SIZE_CLUSTERx3
+        tf.compat.v1.to_float(scls_onehot), -1), [1,1,3]) # BxNUM_SIZE_CLUSTERx3
     predicted_size_residual_normalized = tf.reduce_sum( \
         end_points['size_residuals_normalized']*scls_onehot_tiled, axis=[1]) # Bx3
 
@@ -370,20 +368,20 @@ def get_loss(mask_label, center_label, \
     gt_mask = tf.tile(tf.expand_dims(hcls_onehot, 2), [1,1,NUM_SIZE_CLUSTER]) * \
         tf.tile(tf.expand_dims(scls_onehot,1), [1,NUM_HEADING_BIN,1]) # (B,NH,NS)
     corners_3d_pred = tf.reduce_sum( \
-        tf.to_float(tf.expand_dims(tf.expand_dims(gt_mask,-1),-1)) * corners_3d,
+        tf.compat.v1.to_float(tf.expand_dims(tf.expand_dims(gt_mask,-1),-1)) * corners_3d,
         axis=[1,2]) # (B,8,3)
 
     heading_bin_centers = tf.constant( \
         np.arange(0,2*np.pi,2*np.pi/NUM_HEADING_BIN), dtype=tf.float32) # (NH,)
     heading_label = tf.expand_dims(heading_residual_label,1) + \
         tf.expand_dims(heading_bin_centers, 0) # (B,NH)
-    heading_label = tf.reduce_sum(tf.to_float(hcls_onehot)*heading_label, 1)
+    heading_label = tf.reduce_sum(tf.compat.v1.to_float(hcls_onehot)*heading_label, 1)
     mean_sizes = tf.expand_dims( \
         tf.constant(g_mean_size_arr, dtype=tf.float32), 0) # (1,NS,3)
     size_label = mean_sizes + \
         tf.expand_dims(size_residual_label, 1) # (1,NS,3) + (B,1,3) = (B,NS,3)
     size_label = tf.reduce_sum( \
-        tf.expand_dims(tf.to_float(scls_onehot),-1)*size_label, axis=[1]) # (B,3)
+        tf.expand_dims(tf.compat.v1.to_float(scls_onehot),-1)*size_label, axis=[1]) # (B,3)
     corners_3d_gt = get_box3d_corners_helper( \
         center_label, heading_label, size_label) # (B,8,3)
     corners_3d_gt_flip = get_box3d_corners_helper( \
@@ -401,6 +399,6 @@ def get_loss(mask_label, center_label, \
         size_residual_normalized_loss*20 + \
         stage1_center_loss + \
         corner_loss_weight*corners_loss)
-    tf.add_to_collection('losses', total_loss)
+    tf.compat.v1.add_to_collection('losses', total_loss)
 
     return total_loss
