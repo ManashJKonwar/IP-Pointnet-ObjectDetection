@@ -16,7 +16,7 @@ import os
 import sys
 import numpy as np
 import tensorflow as tf
-import utility.KITTI.tf_util
+import utility.KITTI.tf_util as tf_util
 from utility.KITTI.model_util import NUM_HEADING_BIN, NUM_SIZE_CLUSTER, NUM_OBJECT_POINT
 from utility.KITTI.model_util import point_cloud_masking, get_center_regression_net
 from utility.KITTI.model_util import placeholder_inputs, parse_output_to_tensors, get_loss
@@ -37,8 +37,8 @@ def get_instance_seg_v1_net(point_cloud, one_hot_vec,
         logits: TF tensor in shape (B,N,2), scores for bkg/clutter and object
         end_points: dict
     '''
-    batch_size = point_cloud.get_shape()[0].value
-    num_point = point_cloud.get_shape()[1].value
+    batch_size = point_cloud.get_shape()[0]
+    num_point = point_cloud.get_shape()[1]
 
     net = tf.expand_dims(point_cloud, 2)
 
@@ -107,7 +107,7 @@ def get_3d_box_estimation_v1_net(object_point_cloud, one_hot_vec,
             including box centers, heading bin class scores and residuals,
             and size cluster scores and residuals
     ''' 
-    num_point = object_point_cloud.get_shape()[1].value
+    num_point = object_point_cloud.get_shape()[1]
     net = tf.expand_dims(object_point_cloud, 2)
     net = tf_util.conv2d(net, 128, [1,1],
                          padding='VALID', stride=[1,1],
