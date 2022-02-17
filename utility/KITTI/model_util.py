@@ -215,7 +215,7 @@ def point_cloud_masking(point_cloud, logits, end_points, xyz_only=True):
     num_point = point_cloud.get_shape()[1]
     mask = tf.slice(logits,[0,0,0],[-1,-1,1]) < \
         tf.slice(logits,[0,0,1],[-1,-1,1])
-    mask = tf.compat.v1.to_float(mask) # BxNx1
+    mask = tf.cast(mask, tf.float32)
     mask_count = tf.tile(tf.math.reduce_sum(mask,axis=1,keepdims=True),
         [1,1,3]) # Bx1x3
     point_cloud_xyz = tf.slice(point_cloud, [0,0,0], [-1,-1,3]) # BxNx3
@@ -328,7 +328,7 @@ def get_loss(mask_label, center_label, \
     heading_residual_normalized_label = \
         heading_residual_label / (np.pi/NUM_HEADING_BIN)
     heading_residual_normalized_loss = huber_loss(tf.reduce_sum( \
-        end_points['heading_residuals_normalized']*tf.compat.v1.to_float(hcls_onehot), axis=1) - \
+        end_points['heading_residuals_normalized']*tf.cast(hcls_onehot, tf.float32), axis=1) - \
         heading_residual_normalized_label, delta=1.0)
     tf.summary.scalar('heading residual normalized loss',
         heading_residual_normalized_loss)
@@ -343,7 +343,7 @@ def get_loss(mask_label, center_label, \
         depth=NUM_SIZE_CLUSTER,
         on_value=1, off_value=0, axis=-1) # BxNUM_SIZE_CLUSTER
     scls_onehot_tiled = tf.tile(tf.expand_dims( \
-        tf.compat.v1.to_float(scls_onehot), -1), [1,1,3]) # BxNUM_SIZE_CLUSTERx3
+        tf.cast(scls_onehot, tf.float32), -1), [1,1,3]) # BxNUM_SIZE_CLUSTERx3
     predicted_size_residual_normalized = tf.reduce_sum( \
         end_points['size_residuals_normalized']*scls_onehot_tiled, axis=[1]) # Bx3
 
@@ -368,20 +368,20 @@ def get_loss(mask_label, center_label, \
     gt_mask = tf.tile(tf.expand_dims(hcls_onehot, 2), [1,1,NUM_SIZE_CLUSTER]) * \
         tf.tile(tf.expand_dims(scls_onehot,1), [1,NUM_HEADING_BIN,1]) # (B,NH,NS)
     corners_3d_pred = tf.reduce_sum( \
-        tf.compat.v1.to_float(tf.expand_dims(tf.expand_dims(gt_mask,-1),-1)) * corners_3d,
+        tf.cast(tf.expand_dims(tf.expand_dims(gt_mask,-1),-1), tf.float32) * corners_3d,
         axis=[1,2]) # (B,8,3)
 
     heading_bin_centers = tf.constant( \
         np.arange(0,2*np.pi,2*np.pi/NUM_HEADING_BIN), dtype=tf.float32) # (NH,)
     heading_label = tf.expand_dims(heading_residual_label,1) + \
         tf.expand_dims(heading_bin_centers, 0) # (B,NH)
-    heading_label = tf.reduce_sum(tf.compat.v1.to_float(hcls_onehot)*heading_label, 1)
+    heading_label = tf.reduce_sum(tf.cast(hcls_onehot, tf.float32)*heading_label, 1)
     mean_sizes = tf.expand_dims( \
         tf.constant(g_mean_size_arr, dtype=tf.float32), 0) # (1,NS,3)
     size_label = mean_sizes + \
         tf.expand_dims(size_residual_label, 1) # (1,NS,3) + (B,1,3) = (B,NS,3)
     size_label = tf.reduce_sum( \
-        tf.expand_dims(tf.compat.v1.to_float(scls_onehot),-1)*size_label, axis=[1]) # (B,3)
+        tf.expand_dims(tf.cast(scls_onehot, tf.float32),-1)*size_label, axis=[1]) # (B,3)
     corners_3d_gt = get_box3d_corners_helper( \
         center_label, heading_label, size_label) # (B,8,3)
     corners_3d_gt_flip = get_box3d_corners_helper( \

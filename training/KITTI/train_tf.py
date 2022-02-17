@@ -25,7 +25,7 @@ def log_string(logger_file, out_str):
     print(out_str)
 
 def get_learning_rate(batch):
-    learning_rate = tf.train.exponential_decay(
+    learning_rate = tf.compat.v1.train.exponential_decay(
                         BASE_LEARNING_RATE,  # Base learning rate.
                         batch * BATCH_SIZE,  # Current index into the dataset.
                         DECAY_STEP,          # Decay step.
@@ -70,7 +70,7 @@ def train():
                 heading_class_label_pl, heading_residual_label_pl,
                 size_class_label_pl, size_residual_label_pl, end_points)
             tf.summary.scalar('loss', loss)
-
+            
             losses = tf.compat.v1.get_collection('losses')
             total_loss = tf.add_n(losses, name='total_loss')
             tf.summary.scalar('total_loss', total_loss)
@@ -101,30 +101,30 @@ def train():
                 optimizer = tf.train.MomentumOptimizer(learning_rate,
                     momentum=MOMENTUM)
             elif OPTIMIZER == 'adam':
-                optimizer = tf.train.AdamOptimizer(learning_rate)
+                optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate)
             train_op = optimizer.minimize(loss, global_step=batch)
             
             # Add ops to save and restore all the variables.
-            saver = tf.train.Saver()
+            saver = tf.compat.v1.train.Saver()
         
         # Create a session
-        config = tf.ConfigProto()
+        config = tf.compat.v1.ConfigProto()
         config.gpu_options.allow_growth = True
-        config.allow_soft_placement = True
+        config.allow_soft_placement = True   
         config.log_device_placement = False
-        sess = tf.Session(config=config)
+        sess = tf.compat.v1.Session(config=config)
 
         # Add summary writers
-        merged = tf.summary.merge_all()
-        train_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
-        test_writer = tf.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
+        merged = tf.compat.v1.summary.merge_all()
+        train_writer = tf.compat.v1.summary.FileWriter(os.path.join(LOG_DIR, 'train'), sess.graph)
+        test_writer = tf.compat.v1.summary.FileWriter(os.path.join(LOG_DIR, 'test'), sess.graph)
 
         # Init variables
-        if FLAGS.restore_model_path is None:
-            init = tf.global_variables_initializer()
+        if RESTORE_MODEL_PATH is None:
+            init = tf.compat.v1.global_variables_initializer()
             sess.run(init)
         else:
-            saver.restore(sess, FLAGS.restore_model_path)
+            saver.restore(sess, RESTORE_MODEL_PATH)
 
         ops = {'pointclouds_pl': pointclouds_pl,
                'one_hot_vec_pl': one_hot_vec_pl,
@@ -355,8 +355,9 @@ def train_frustum_pointnet_tf(**kwargs):
 
     # Set training configurations
     global EPOCH_CNT, BATCH_SIZE, NUM_POINT, MAX_EPOCH, BASE_LEARNING_RATE, GPU_INDEX, MOMENTUM, \
-        OPTIMIZER, DECAY_STEP, DECAY_RATE, NUM_CHANNEL, NUM_CLASSES, MODEL, MODEL_FILE, LOG_FOUT, \
-        BN_INIT_DECAY, BN_DECAY_DECAY_RATE, BN_DECAY_DECAY_STEP, BN_DECAY_CLIP
+        OPTIMIZER, DECAY_STEP, DECAY_RATE, RESTORE_MODEL_PATH, NUM_CHANNEL, NUM_CLASSES, MODEL, MODEL_FILE, \
+        LOG_DIR, LOG_FOUT, BN_INIT_DECAY, BN_DECAY_DECAY_RATE, BN_DECAY_DECAY_STEP, BN_DECAY_CLIP
+
     EPOCH_CNT = 0
     BATCH_SIZE = batch_size
     NUM_POINT = num_point
@@ -367,6 +368,7 @@ def train_frustum_pointnet_tf(**kwargs):
     OPTIMIZER = optimizer
     DECAY_STEP = decay_step
     DECAY_RATE = decay_rate
+    RESTORE_MODEL_PATH = restore_model_path
     NUM_CHANNEL = 3 if no_intensity else 4 # point feature channel
     NUM_CLASSES = 2 # segmentation has two classes
 
