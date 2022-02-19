@@ -94,6 +94,22 @@ XXXXX
 - python train_OD.py "kitti"
 - python train_OD.py "lyft"
 
+### KITTI Frustum Extraction:
+Step 1: Visualizing 2d box based object detection
+![KITTI 2d object detection](./repo_assets/KITTI_2d_boundingbox.jpg)
+
+Step 2: Point Cloud Projection on rgb image
+![KITTI point cloud projection](./repo_assets/KITTI_2d_lidarprojections.jpg)
+
+Step 3: Lidar 3d Point Cloud Projection
+![KITTI 3d point cloud projection](./repo_assets/KITTI_3d_lidar_pointcloud_tracing.jpg)
+
+Step 4: Lidar 3d Point Cloud box based object detection
+![KITTI 3d point cloud detection](./repo_assets/KITTI_3d_lidar_pointcloud_tracing.jpg)
+
+Step 5: Lidar 3d frustum extraction for object
+![KITTI 3d point cloud detection](./repo_assets/KITTI_3d_lidar_pointcloud_frustum_projection.jpg)
+
 ## Project Status
 Project is: __in progress_ 
 <!-- / _complete_ / _no longer being worked on_. If you are no longer working on it, provide reasons why._ -->
