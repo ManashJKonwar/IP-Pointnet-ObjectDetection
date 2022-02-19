@@ -108,7 +108,7 @@ Step 4: Lidar 3d Point Cloud box based object detection
 ![KITTI 3d point cloud detection](./repo_assets/KITTI_3d_lidar_pointcloud_tracing.jpg)
 
 Step 5: Lidar 3d frustum extraction for object
-![KITTI 3d point cloud detection](./repo_assets/KITTI_3d_lidar_pointcloud_frustum_projection.jpg)
+![KITTI 3d point cloud frustum extraction](./repo_assets/KITTI_3d_lidar_pointcloud_frustum_projection.jpg)
 
 ## Project Status
 Project is: __in progress_ 
