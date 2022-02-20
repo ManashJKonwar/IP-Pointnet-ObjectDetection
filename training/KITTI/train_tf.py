@@ -46,7 +46,7 @@ def get_bn_decay(batch):
 
 def train():
     ''' Main function for training and simple evaluation. '''
-    with tf.Graph().as_default():
+    with tf.compat.v1.Graph().as_default():
         with tf.device('/gpu:'+str(GPU_INDEX)):
             pointclouds_pl, one_hot_vec_pl, labels_pl, centers_pl, \
             heading_class_label_pl, heading_residual_label_pl, \
@@ -61,7 +61,7 @@ def train():
             batch = tf.compat.v1.get_variable('batch', [],
                 initializer=tf.constant_initializer(0), trainable=False)
             bn_decay = get_bn_decay(batch)
-            tf.summary.scalar('bn_decay', bn_decay)
+            tf.compat.v1.summary.scalar('bn_decay', bn_decay)
 
             # Get model and losses 
             end_points = MODEL.get_model(pointclouds_pl, one_hot_vec_pl,
@@ -69,14 +69,14 @@ def train():
             loss = MODEL.get_loss(labels_pl, centers_pl,
                 heading_class_label_pl, heading_residual_label_pl,
                 size_class_label_pl, size_residual_label_pl, end_points)
-            tf.summary.scalar('loss', loss)
+            tf.compat.v1.summary.scalar('loss', loss)
             
             losses = tf.compat.v1.get_collection('losses')
             total_loss = tf.add_n(losses, name='total_loss')
-            tf.summary.scalar('total_loss', total_loss)
+            tf.compat.v1.summary.scalar('total_loss', total_loss)
 
             # Write summaries of bounding box IoU and segmentation accuracies
-            iou2ds, iou3ds = tf.py_function(compute_box3d_iou, [\
+            iou2ds, iou3ds = tf.compat.v1.py_function(compute_box3d_iou, [\
                 end_points['center'], \
                 end_points['heading_scores'], end_points['heading_residuals'], \
                 end_points['size_scores'], end_points['size_residuals'], \
@@ -86,17 +86,17 @@ def train():
                 [tf.float32, tf.float32])
             end_points['iou2ds'] = iou2ds 
             end_points['iou3ds'] = iou3ds 
-            tf.summary.scalar('iou_2d', tf.reduce_mean(iou2ds))
-            tf.summary.scalar('iou_3d', tf.reduce_mean(iou3ds))
+            tf.compat.v1.summary.scalar('iou_2d', tf.reduce_mean(iou2ds))
+            tf.compat.v1.summary.scalar('iou_3d', tf.reduce_mean(iou3ds))
 
             correct = tf.equal(tf.argmax(end_points['mask_logits'], 2), tf.cast(labels_pl, tf.int64))
             accuracy = tf.reduce_sum(tf.cast(correct, tf.float32)) / \
                 float(BATCH_SIZE*NUM_POINT)
-            tf.summary.scalar('segmentation accuracy', accuracy)
+            tf.compat.v1.summary.scalar('segmentation accuracy', accuracy)
 
             # Get training operator
             learning_rate = get_learning_rate(batch)
-            tf.summary.scalar('learning_rate', learning_rate)
+            tf.compat.v1.summary.scalar('learning_rate', learning_rate)
             if OPTIMIZER == 'momentum':
                 optimizer = tf.train.MomentumOptimizer(learning_rate,
                     momentum=MOMENTUM)
@@ -144,7 +144,7 @@ def train():
                'end_points': end_points}
 
         for epoch in range(MAX_EPOCH):
-            log_string('**** EPOCH %03d ****' % (epoch))
+            log_string(logger_file=LOG_FOUT, out_str='**** EPOCH %03d ****' % (epoch))
             sys.stdout.flush()
              
             train_one_epoch(sess, ops, train_writer)
@@ -153,19 +153,19 @@ def train():
             # Save the variables to disk.
             if epoch % 10 == 0:
                 save_path = saver.save(sess, os.path.join(LOG_DIR, "model.ckpt"))
-                log_string("Model saved in file: %s" % save_path)
+                log_string(logger_file=LOG_FOUT, out_str='Model saved in file: %s' % save_path)
 
 def train_one_epoch(sess, ops, train_writer):
     ''' Training for one epoch on the frustum dataset.
     ops is dict mapping from string to tf ops
     '''
     is_training = True
-    log_string(str(datetime.now()))
+    log_string(logger_file=LOG_FOUT, out_str=str(datetime.now()))
     
     # Shuffle train samples
     train_idxs = np.arange(0, len(TRAIN_DATASET))
     np.random.shuffle(train_idxs)
-    num_batches = len(TRAIN_DATASET)/BATCH_SIZE
+    num_batches = int(len(TRAIN_DATASET)/BATCH_SIZE)
 
     # To collect statistics
     total_correct = 0
@@ -216,13 +216,13 @@ def train_one_epoch(sess, ops, train_writer):
         iou3d_correct_cnt += np.sum(iou3ds>=0.7)
 
         if (batch_idx+1)%10 == 0:
-            log_string(' -- %03d / %03d --' % (batch_idx+1, num_batches))
-            log_string('mean loss: %f' % (loss_sum / 10))
-            log_string('segmentation accuracy: %f' % \
+            log_string(logger_file=LOG_FOUT, out_str=' -- %03d / %03d --' % (batch_idx+1, num_batches))
+            log_string(logger_file=LOG_FOUT, out_str='mean loss: %f' % (loss_sum / 10))
+            log_string(logger_file=LOG_FOUT, out_str='segmentation accuracy: %f' % \
                 (total_correct / float(total_seen)))
-            log_string('box IoU (ground/3D): %f / %f' % \
+            log_string(logger_file=LOG_FOUT, out_str='box IoU (ground/3D): %f / %f' % \
                 (iou2ds_sum / float(BATCH_SIZE*10), iou3ds_sum / float(BATCH_SIZE*10)))
-            log_string('box estimation accuracy (IoU=0.7): %f' % \
+            log_string(logger_file=LOG_FOUT, out_str='box estimation accuracy (IoU=0.7): %f' % \
                 (float(iou3d_correct_cnt)/float(BATCH_SIZE*10)))
             total_correct = 0
             total_seen = 0
@@ -238,8 +238,8 @@ def eval_one_epoch(sess, ops, test_writer):
     '''
     global EPOCH_CNT
     is_training = False
-    log_string(str(datetime.now()))
-    log_string('---- EPOCH %03d EVALUATION ----'%(EPOCH_CNT))
+    log_string(logger_file=LOG_FOUT, out_str=str(datetime.now()))
+    log_string(logger_file=LOG_FOUT, out_str='---- EPOCH %03d EVALUATION ----'%(EPOCH_CNT))
     test_idxs = np.arange(0, len(TEST_DATASET))
     num_batches = len(TEST_DATASET)/BATCH_SIZE
 
@@ -305,16 +305,16 @@ def eval_one_epoch(sess, ops, test_writer):
                     part_ious[l] = np.sum((segl==l) & (segp==l)) / \
                         float(np.sum((segl==l) | (segp==l)))
 
-    log_string('eval mean loss: %f' % (loss_sum / float(num_batches)))
-    log_string('eval segmentation accuracy: %f'% \
+    log_string(logger_file=LOG_FOUT, out_str='eval mean loss: %f' % (loss_sum / float(num_batches)))
+    log_string(logger_file=LOG_FOUT, out_str='eval segmentation accuracy: %f'% \
         (total_correct / float(total_seen)))
-    log_string('eval segmentation avg class acc: %f' % \
+    log_string(logger_file=LOG_FOUT, out_str='eval segmentation avg class acc: %f' % \
         (np.mean(np.array(total_correct_class) / \
             np.array(total_seen_class,dtype=np.float))))
-    log_string('eval box IoU (ground/3D): %f / %f' % \
+    log_string(logger_file=LOG_FOUT, out_str='eval box IoU (ground/3D): %f / %f' % \
         (iou2ds_sum / float(num_batches*BATCH_SIZE), iou3ds_sum / \
             float(num_batches*BATCH_SIZE)))
-    log_string('eval box estimation accuracy (IoU=0.7): %f' % \
+    log_string(logger_file=LOG_FOUT, out_str='eval box estimation accuracy (IoU=0.7): %f' % \
         (float(iou3d_correct_cnt)/float(num_batches*BATCH_SIZE)))
          
     EPOCH_CNT += 1
@@ -356,7 +356,8 @@ def train_frustum_pointnet_tf(**kwargs):
     # Set training configurations
     global EPOCH_CNT, BATCH_SIZE, NUM_POINT, MAX_EPOCH, BASE_LEARNING_RATE, GPU_INDEX, MOMENTUM, \
         OPTIMIZER, DECAY_STEP, DECAY_RATE, RESTORE_MODEL_PATH, NUM_CHANNEL, NUM_CLASSES, MODEL, MODEL_FILE, \
-        LOG_DIR, LOG_FOUT, BN_INIT_DECAY, BN_DECAY_DECAY_RATE, BN_DECAY_DECAY_STEP, BN_DECAY_CLIP
+        LOG_DIR, LOG_FOUT, BN_INIT_DECAY, BN_DECAY_DECAY_RATE, BN_DECAY_DECAY_STEP, BN_DECAY_CLIP, \
+        TRAIN_DATASET, TEST_DATASET
 
     EPOCH_CNT = 0
     BATCH_SIZE = batch_size
